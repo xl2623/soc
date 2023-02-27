@@ -1,7 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from statistics import median
-
+import random
+import numpy as np
 
 class Player:
     def __init__(self, resource, port, vp, dev, roads, cities, settlements):
@@ -15,6 +16,23 @@ class Player:
 
 class Game:
     def __init__(self):
+        self.map = self.createmap()
+        self.tile = Tile()
+        self.settlements = 0
+        self.cities = 0
+        self.roads = 0
+        self.bank = 0
+        self.robber = 0
+        self.dice = 0
+
+    def roll_dice(self):
+        self.dice = Dice(random.randint(0,7))
+
+    def start(self):
+        tile_nodes = [n for (n,ty) in nx.get_node_attributes(G,'Type').items() if ty == 'Tiles']
+        
+
+    def createmap(self):
         # create a 3 by 5 hex lattice graph
         G = nx.hexagonal_lattice_graph(3,5)
         # add necessary nodes and edges to form catan map
@@ -126,38 +144,65 @@ class Game:
         G.add_node(3008, pos=((positions[base1][0]+positions[base2][0])/2, positions[base2][1]-deltay), Type='Port')
         G.add_edge(base1, 3008)
         G.add_edge(base2, 3008)
+        return G
 
-        # Draw the graph
-        # extract nodes with specific setting of the attribute
-        tile_nodes = [n for (n,ty) in \
-            nx.get_node_attributes(G,'Type').items() if ty == 'Tiles']
-        edge_nodes = [n for (n,ty) in \
-            nx.get_node_attributes(G,'Type').items() if ty == 'Edge']
-        port_nodes = [n for (n,ty) in \
-            nx.get_node_attributes(G,'Type').items() if ty == 'Port']
-        # and find all the remaining nodes.edge_nodes
-        other_nodes = list(set(G.nodes()) - set(tile_nodes) - set(edge_nodes) - set(port_nodes))
+class Dice:
+    def __init__(self, number):
+        self.number = number
+        self.index = np.zeros(12,1)
+        self.index[self.number] = 1
 
-        pos = nx.get_node_attributes(G, 'pos')
-        nx.draw_networkx_nodes(G, pos, nodelist=tile_nodes, \
-            node_color='red', node_shape='s')
-        nx.draw_networkx_nodes(G, pos, nodelist=edge_nodes, \
-            node_color='blue', node_shape='s')
-        nx.draw_networkx_nodes(G, pos, nodelist=other_nodes, \
-            node_color='black', node_shape='o')
-        nx.draw_networkx_nodes(G, pos, nodelist=port_nodes, \
-            node_color='purple', node_shape='o')
-        nx.draw_networkx_edges(G, pos)
-        # nx.draw_networkx(G, pos=nx.get_node_attributes(G, 'pos'))
-        plt.show()
-        self.map = G
-        self.settlements = 0
-        self.cities = 0
-        self.roads = 0
-        self.bank = 0
-        self.robber = 0
+class Tile:
+    def __init__(self):
+        self.name = ["Lumber","Lumber","Lumber","Lumber",\
+                         "Wool","Wool","Wool","Wool",\
+                         "Grain","Grain","Grain","Grain",\
+                         "Brick","Brick","Brick",\
+                         "Ore","Ore","Ore",\
+                         "Desert"]
+        random.shuffle(self.name)
+        self.index = np.zeros((len(self.name), 1))
+        for i in range(0,len(self.name)):
+            if self.name[i] == "Lumber":
+                self.index[i,0] = 0
+            elif self.name[i] == "Wool":
+                self.index[i,0] = 1
+            elif self.name[i] == "Grain":
+                self.index[i,0] = 2
+            elif self.name[i] == "Brick":
+                self.index[i,0] = 3
+            elif self.name[i] == "Ore":
+                self.index[i,0] = 4
+            else:
+                self.index[i,0] = 5
 
-    def start(self):
-        self.map
-        
-G = Game()
+def draw(G):
+    # Draw the graph
+    # extract nodes with specific setting of the attribute
+    tile_nodes = [n for (n,ty) in \
+        nx.get_node_attributes(G,'Type').items() if ty == 'Tiles']
+    edge_nodes = [n for (n,ty) in \
+        nx.get_node_attributes(G,'Type').items() if ty == 'Edge']
+    port_nodes = [n for (n,ty) in \
+        nx.get_node_attributes(G,'Type').items() if ty == 'Port']
+    # and find all the remaining nodes.edge_nodes
+    other_nodes = list(set(G.nodes()) - set(tile_nodes) - set(edge_nodes) - set(port_nodes))
+
+    pos = nx.get_node_attributes(G, 'pos')
+    nx.draw_networkx_nodes(G, pos, nodelist=tile_nodes, \
+        node_color='red', node_shape='s')
+    nx.draw_networkx_nodes(G, pos, nodelist=edge_nodes, \
+        node_color='blue', node_shape='s')
+    nx.draw_networkx_nodes(G, pos, nodelist=other_nodes, \
+        node_color='black', node_shape='o')
+    nx.draw_networkx_nodes(G, pos, nodelist=port_nodes, \
+        node_color='purple', node_shape='o')
+    nx.draw_networkx_edges(G, pos)
+    # nx.draw_networkx(G, pos=nx.get_node_attributes(G, 'pos'))
+    plt.show()
+
+if __name__ == '__main__':
+    G = Game()
+    print(G.tile.name)
+    print(G.tile.index)
+    # draw(G.map)
